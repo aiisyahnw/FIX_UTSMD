@@ -9,35 +9,18 @@ reg_model = joblib.load(os.path.join(BASE_DIR, "../artifacts/regression_model.pk
 
 
 def main():
-    st.set_page_config(
-        page_title="Student Placement Predictor",
-        layout="wide"
-    )
+    st.set_page_config(page_title="Student Placement Predictor", layout="wide")
 
-    #HEADER
-    st.markdown("""
-    <h1 style='text-align: center; color: #00C9A7;'>
-    🎓 Student Placement Predictor
-    </h1>
-    <p style='text-align: center;'>
-    AI-based prediction for placement status and expected salary
-    </p>
-    """, unsafe_allow_html=True)
+    st.title("🎓 Student Placement Predictor")
+    st.write("AI-based prediction for placement status and expected salary")
 
-    st.divider()
-
-    #SIDEBAR
     st.sidebar.title("App Info")
     st.sidebar.write("""
     This app predicts:
     - Placement status
     - Expected salary (if placed)
-
-    Model:
-    - XGBoost (Classification & Regression)
     """)
 
-    #INPUT
     with st.form("input_form"):
         col1, col2 = st.columns(2)
 
@@ -62,9 +45,8 @@ def main():
             coding = st.slider("Coding Skill", 0, 10, 5)
             communication = st.slider("Communication Skill", 0, 10, 5)
 
-        submit = st.form_submit_button("Go Predict")
+        submit = st.form_submit_button("Predict")
 
-    #PREDICTION
     if submit:
 
         data = pd.DataFrame([{
@@ -82,8 +64,6 @@ def main():
             "certifications_count": certifications,
             "coding_skill_rating": coding,
             "communication_skill_rating": communication,
-
-            #default
             "tenth_percentage": 70,
             "twelfth_percentage": 70,
             "backlogs": 0,
@@ -91,7 +71,7 @@ def main():
             "extracurricular_involvement": 1,
             "sleep_hours": 7
         }])
-        
+
         expected_columns = [
             'cgpa', 'tenth_percentage', 'twelfth_percentage',
             'backlogs', 'study_hours_per_day', 'attendance_percentage',
@@ -100,54 +80,26 @@ def main():
             'aptitude_skill_rating', 'certifications_count',
             'extracurricular_involvement', 'sleep_hours',
             'family_income_level', 'city_tier',
-           'gender', 'branch', 'part_time_job', 'internet_access'
+            'gender', 'branch', 'part_time_job', 'internet_access'
         ]
 
         data = data.reindex(columns=expected_columns)
         data = data.fillna(0)
-        
-        #Loading animation
+
         with st.spinner("Predicting..."):
-            
             try:
                 pred = clf_model.predict(data)[0]
             except Exception as e:
-                st.error(f"ERROR: {e}")
-                st.write("Columns:", data.columns)
-                st.write("Data shape:", data.shape)
+                st.error(e)
                 st.write(data)
-            return
+                return
 
-        st.divider()
-
-        #RESULTS
         if pred == 1:
             salary = reg_model.predict(data)[0]
-
-            st.markdown(f"""
-            <div style='padding:20px; border-radius:10px; background-color:#1A1D24'>
-                <h2 style='color:#00C9A7;'>Placed!</h2>
-                <h3>Estimated Salary: {salary:.2f} LPA</h3>
-            </div>
-            """, unsafe_allow_html=True)
-
-            #Visualization
-            st.subheader("Salary Insight")
-            chart_data = pd.DataFrame({
-                "Metric": ["Predicted Salary"],
-                "Value": [salary]
-            })
-
-            st.bar_chart(chart_data, x="Metric", y="Value")
-
+            st.success(f"Placed! Estimated Salary: {salary:.2f} LPA")
             st.balloons()
-
         else:
-            st.markdown(f"""
-            <div style='padding:20px; border-radius:10px; background-color:#1A1D24'>
-                <h2 style='color:red;'>Not Placed.</h2>
-            </div>
-            """, unsafe_allow_html=True)
+            st.warning("Not Placed")
 
 
 if __name__ == "__main__":
