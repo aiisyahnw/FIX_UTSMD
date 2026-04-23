@@ -103,8 +103,9 @@ def main():
            'gender', 'branch', 'part_time_job', 'internet_access'
         ]
 
-        data = data[expected_columns]
-
+        data = data.reindex(columns=expected_columns)
+        data = data.fillna(0)
+        
         #Loading animation
         with st.spinner("Predicting..."):
             pred = clf_model.predict(data)[0]
