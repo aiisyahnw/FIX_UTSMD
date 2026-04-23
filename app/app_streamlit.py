@@ -108,7 +108,15 @@ def main():
         
         #Loading animation
         with st.spinner("Predicting..."):
-            pred = clf_model.predict(data)[0]
+            
+            try:
+                pred = clf_model.predict(data)[0]
+            except Exception as e:
+                st.error(f"ERROR: {e}")
+                st.write("Columns:", data.columns)
+                st.write("Data shape:", data.shape)
+                st.write(data)
+            return
 
         st.divider()
 
